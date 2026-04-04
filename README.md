@@ -1,76 +1,101 @@
-# 🌿 Aranyani — Predictive Ecosystem Collapse Warning System
+# 🌿 Aranyani — Ecosystem Collapse Early Warning System
 
-> *From Rigveda 10.146 — Aranyani, the unseen guardian of forests who senses danger before humans do.*
+> *From Rigveda 10.146 — Aranyani, the unseen guardian of forests.*
 
 ## What Is Aranyani?
 
-Aranyani is an AI-powered system that predicts ecosystem collapse in Indian forest zones **6 to 18 months before it becomes visible** — by combining NASA satellite data with 2000-year-old Indian ecological wisdom from Vrikshayurveda.
+Aranyani is an AI system that detects early warning signals of 
+ecosystem degradation in Indian forest zones by combining 4 years 
+of NASA satellite data with traditional ecological indicators from 
+Vrikshayurveda — the 2000-year-old Indian science of plant life.
 
-India loses thousands of hectares of forest every year silently. By the time a ranger reaches the ground, the damage is done. Existing systems tell you a forest is dying after you can already see it. Aranyani tells you before.
+Most systems show you a forest is degrading after it is already 
+visible on the ground. Aranyani detects the signal earlier — in 
+the data — before it becomes obvious.
 
 ---
 
 ## The Problem
 
-- India has no predictive system for ecosystem collapse
-- Manual monitoring is slow, sparse, and reactive
-- Traditional ecological knowledge from Vrikshayurveda is undocumented digitally
-- No system combines satellite AI with Indian Knowledge Systems
+Forest degradation in India is monitored reactively. Rangers report 
+what they see on the ground. By the time a report is filed, 
+significant damage has already occurred. There is no system that:
+
+- Monitors all major Indian forest zones continuously
+- Combines satellite signals with traditional ecological knowledge
+- Gives forest authorities an early warning score they can act on
 
 ---
 
-## Our Solution
+## What Aranyani Does
 
-Aranyani monitors 3 major Indian forest zones in real time:
+Aranyani monitors 3 major Indian forest zones and produces a 
+collapse risk score from 0 to 100 for each zone based on:
+
+- Vegetation health trends from satellite data (2020-2024)
+- Anomaly detection against each zone's own seasonal baseline
+- Fire hotspot data from NASA FIRMS
+- Community-reported IKS ecological signals
 
 | Zone | Region | IKS Knowledge System |
 |---|---|---|
 | Western Ghats | Kerala-Karnataka border | Kerala sacred groves — Kavus |
-| Central India | Madhya Pradesh forests | Gond tribal forest knowledge |
+| Central India | Madhya Pradesh | Gond tribal forest knowledge |
 | Northeast | Assam-Meghalaya | Khasi sacred forests — Law Kyntang |
-
----
-
-## How It Works
-
-### 1. Satellite Data Pipeline
-- Fetches 4 years of Sentinel-2 satellite imagery via Microsoft Planetary Computer
-- Calculates NDVI (Normalized Difference Vegetation Index) per zone per month
-- Tracks vegetation health from 2020 to 2024
-
-### 2. Anomaly Detection
-- Isolation Forest algorithm detects abnormal NDVI patterns
-- Learns what is normal for each zone's own seasonal baseline
-- Flags readings that deviate from 4 years of historical patterns
-
-### 3. IKS Integration
-- Digitizes ecological distress indicators from Vrikshayurveda (2000 year old Indian plant science)
-- Community members submit reports using traditional indicators:
-  - Unusual animal migration
-  - River color changes
-  - Plants flowering out of season
-  - Streams drying up unexpectedly
-  - Unusual bird behavior
-
-### 4. Risk Scoring
-- Combines NDVI anomalies + fire hotspots (NASA FIRMS) + IKS community signals
-- Produces a Collapse Risk Score from 0 to 100 per zone
-- Classifies zones as LOW / MODERATE / HIGH / CRITICAL
-
-### 5. Alert System
-- Real-time risk dashboard with interactive India map
-- Automatic alerts to forest authorities for HIGH and CRITICAL zones
-- Community reporting interface for IKS signal submission
 
 ---
 
 ## Current Risk Status
 
-| Zone | Latest NDVI | Risk Score | Risk Level |
+| Zone | Latest NDVI | Risk Score | Level |
 |---|---|---|---|
 | Western Ghats | 0.359 | 29.7/100 | MODERATE |
 | Central India | 0.354 | 53.3/100 | HIGH |
 | Northeast | 0.413 | 40.9/100 | MODERATE |
+
+---
+
+## How It Works
+
+### Step 1 — Satellite Data
+Fetches Sentinel-2 imagery via Microsoft Planetary Computer.
+Calculates NDVI (vegetation health index) per zone per month
+across 2020 to 2024.
+
+### Step 2 — Anomaly Detection
+Isolation Forest learns what is seasonally normal for each zone.
+It flags readings that are abnormally low compared to that
+zone's own 4-year baseline — not a global threshold.
+
+### Step 3 — IKS Signal Integration
+Community members submit ecological observations using traditional
+Vrikshayurveda indicators:
+- Unusual animal movement near forests
+- River or stream color changes
+- Plants flowering out of season
+- Streams drying earlier than usual
+- Unusual bird departure patterns
+
+These signals, documented 2000 years ago, are now validated by
+modern ecology. We digitize them as structured inputs.
+
+### Step 4 — Risk Scoring
+Combines anomaly scores, NDVI deviation, fire hotspot count,
+and IKS signals into a single 0-100 risk score per zone.
+Zones above 50 trigger alerts to forest authorities.
+
+---
+
+## What Makes This Different
+
+Most forest monitoring tools use satellite data alone.
+Aranyani is built on the idea that communities living near
+forests have been observing ecological distress signals for
+generations — and that this knowledge, formalized in
+Vrikshayurveda, has scientific validity.
+
+We combine both. That combination — satellite AI and traditional
+Indian ecological knowledge — is what makes Aranyani distinct.
 
 ---
 
@@ -80,12 +105,11 @@ Aranyani monitors 3 major Indian forest zones in real time:
 |---|---|
 | Satellite Data | Sentinel-2 via Microsoft Planetary Computer |
 | Fire Data | NASA FIRMS VIIRS API |
-| ML — Anomaly Detection | Isolation Forest (scikit-learn) |
-| ML — Risk Scoring | XGBoost + weighted formula |
+| Anomaly Detection | Isolation Forest (scikit-learn) |
+| Risk Scoring | XGBoost + weighted formula |
 | Backend API | FastAPI (Python) |
 | Frontend | React + Leaflet.js + Recharts |
 | IKS Processing | Rule-based keyword extraction |
-| Version Control | GitHub |
 
 ---
 
