@@ -114,3 +114,90 @@ Indian ecological knowledge — is what makes Aranyani distinct.
 ---
 
 ## Project Structure
+aranyani/
+├── ml/
+│   └── Aranyani.ipynb
+├── backend/
+│   ├── main.py
+│   ├── iks_extractor.py
+│   ├── western_ghats_risk_scores.csv
+│   ├── central_india_risk_scores.csv
+│   └── northeast_risk_scores.csv
+├── frontend/
+│   └── src/
+│       ├── App.jsx
+│       ├── Map.jsx
+│       └── Dashboard.jsx
+└── README.md
+
+---
+
+## How To Run
+
+### Backend
+```bash
+cd backend
+pip install fastapi uvicorn pandas
+uvicorn main:app --reload
+```
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm start
+```
+
+---
+
+## Data Sources
+
+| Source | What It Provides |
+|---|---|
+| Microsoft Planetary Computer | Sentinel-2 satellite imagery |
+| NASA FIRMS | Fire hotspot data |
+| ISRO Bhuvan | India land cover classification |
+| Global Forest Watch | Forest cover ground truth |
+| Vrikshayurveda (SSRN 2024) | IKS ecological indicators |
+
+---
+
+## IKS Foundation
+
+Aranyani is named after the forest deity in Rigveda 10.146 —
+described as the unseen presence that senses the forest's
+condition before humans notice anything.
+
+The ecological indicators in our community reporting system come
+from Vrikshayurveda — documented 2000 years ago and now being
+validated by peer-reviewed ecology research. We treat this
+knowledge as a legitimate data source, not decoration.
+
+---
+
+## Limitations and Next Steps
+
+This is a prototype built on 4 years of historical satellite data
+with a small number of data points per zone. The risk scores
+reflect current degradation signals, not guaranteed future
+outcomes.
+
+Next steps:
+- Partner with Forest Survey of India for verified ground truth data
+- Expand to more forest zones across India
+- Build mobile reporting app for community IKS submissions
+- Train on larger labeled dataset for improved accuracy
+
+---
+
+## Built For
+
+Srishti Hackathon — Domain: Tech for Sustainable Impact
+AI + Indian Knowledge Systems
+
+---
+
+## Acknowledgements
+
+NASA FIRMS, ESA Sentinel-2, Microsoft Planetary Computer,
+ISRO NRSC Bhuvan, Vrikshayurveda research community
