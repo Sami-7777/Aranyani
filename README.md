@@ -131,11 +131,17 @@ aranyani/
 │   ├── central_india_risk_scores.csv
 
 │   └── northeast_risk_scores.csv
+
 ├── frontend/
+
 │   └── src/
+
 │       ├── App.jsx
+
 │       ├── Map.jsx
+
 │       └── Dashboard.jsx
+
 └── README.md
 
 ---
