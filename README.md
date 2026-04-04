@@ -115,13 +115,21 @@ Indian ecological knowledge — is what makes Aranyani distinct.
 
 ## Project Structure
 aranyani/
+
 ├── ml/
+
 │   └── Aranyani.ipynb
+
 ├── backend/
+
 │   ├── main.py
+
 │   ├── iks_extractor.py
+
 │   ├── western_ghats_risk_scores.csv
+
 │   ├── central_india_risk_scores.csv
+
 │   └── northeast_risk_scores.csv
 ├── frontend/
 │   └── src/
