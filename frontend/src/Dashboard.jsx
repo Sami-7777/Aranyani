@@ -1,292 +1,449 @@
-import { LineChart, Line, XAxis, YAxis,
-         CartesianGrid, Tooltip, Legend,
-         ResponsiveContainer } from 'recharts';
+import {
+    LineChart, Line, XAxis, YAxis,
+    CartesianGrid, Tooltip,
+    ResponsiveContainer, ReferenceLine
+} from 'recharts';
 
-const COLORS = {
-    LOW: '#22c55e', MODERATE: '#eab308',
+const RISK_COLORS = {
+    LOW: '#22c55e', MODERATE: '#f59e0b',
     HIGH: '#f97316', CRITICAL: '#ef4444',
-    UNKNOWN: '#888888'
+    UNKNOWN: '#888'
 };
 
-export default function Dashboard({ zone }) {
+export default function Dashboard({ zone, dark, T }) {
     if (!zone) return null;
+
+    const color = RISK_COLORS[zone.level] || '#888';
 
     const chartData = (zone.dates || []).map((date, i) => ({
         date: date.toString().slice(0, 10),
-        ndvi: parseFloat((zone.ndvi_trend?.[i] || 0).toFixed(3))
+        ndvi: parseFloat(
+            (zone.ndvi_trend?.[i] || 0).toFixed(3)
+        )
     }));
 
+    const avgNdvi = chartData.length
+        ? chartData.reduce((s, d) => s + d.ndvi, 0) / chartData.length
+        : 0;
+
     return (
-        <div style={{padding: '0 0 24px'}}>
+        <div style={{
+            background: T.bg,
+            borderTop: `4px solid ${color}`
+        }}>
 
             {/* Zone Header */}
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '16px 24px',
-                background: '#f9fafb',
-                borderBottom: '1px solid #e5e7eb'
+                padding: '20px 28px',
+                background: T.surface,
+                borderBottom: `1px solid ${T.border}`,
+                flexWrap: 'wrap',
+                gap: '12px'
             }}>
                 <div>
-                    <h2 style={{margin: 0, fontSize: '18px'}}>
+                    <h2 style={{
+                        margin: 0,
+                        fontSize: '20px',
+                        color: T.text
+                    }}>
                         {zone.name || zone.zone_name}
                     </h2>
                     {zone.iks?.guardian_system && (
-                        <p style={{
-                            margin: '2px 0 0',
+                        <div style={{
                             fontSize: '12px',
-                            color: '#6b7280'
+                            color: T.subtext,
+                            marginTop: '4px'
                         }}>
                             🌿 {zone.iks.guardian_system}
-                        </p>
-                    )}
-                    {zone.message && (
-                        <p style={{
-                            margin: '2px 0 0',
-                            fontSize: '12px',
-                            color: '#6b7280',
-                            fontStyle: 'italic'
-                        }}>
-                            📍 {zone.message}
-                        </p>
+                        </div>
                     )}
                 </div>
+
+                {/* Big Risk Badge */}
                 <div style={{
-                    background: COLORS[zone.level] || '#888',
-                    color: 'white',
-                    padding: '8px 20px',
-                    borderRadius: '24px',
-                    textAlign: 'center'
+                    background: color,
+                    borderRadius: '12px',
+                    padding: '12px 24px',
+                    textAlign: 'center',
+                    boxShadow: `0 4px 14px ${color}55`
                 }}>
                     <div style={{
-                        fontSize: '22px',
-                        fontWeight: 'bold'
+                        color: '#fff',
+                        fontSize: '28px',
+                        fontWeight: '800',
+                        lineHeight: 1
                     }}>
-                        {zone.score}/100
+                        {zone.score}
                     </div>
-                    <div style={{fontSize: '12px'}}>
-                        {zone.level}
+                    <div style={{
+                        color: 'rgba(255,255,255,0.85)',
+                        fontSize: '11px',
+                        marginTop: '2px'
+                    }}>
+                        out of 100 — {zone.level}
                     </div>
                 </div>
             </div>
 
-            <div style={{padding: '0 24px'}}>
+            <div style={{padding: '24px 28px'}}>
 
                 {/* Stats Row */}
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '12px',
-                    margin: '16px 0'
+                    gap: '16px',
+                    marginBottom: '28px'
                 }}>
                     <StatCard
                         label="Current NDVI"
                         value={zone.ndvi?.toFixed(3) || 'N/A'}
                         sub="Vegetation health index"
                         color="#16a34a"
+                        dark={dark}
+                        T={T}
+                        note={zone.ndvi < 0.4
+                            ? '⚠️ Below healthy range'
+                            : '✅ Within range'
+                        }
                     />
                     <StatCard
                         label="Fire Hotspots"
                         value={zone.fire_count
                             ? Math.round(zone.fire_count)
                             : 0}
-                        sub="Last 5 days (NASA FIRMS)"
+                        sub="Last 5 days — NASA FIRMS"
                         color="#f97316"
+                        dark={dark}
+                        T={T}
+                        note={zone.fire_count > 500
+                            ? '🔥 High fire pressure'
+                            : '✅ Normal'
+                        }
                     />
                     <StatCard
                         label="Anomalies"
                         value={zone.anomalies || 0}
                         sub="Detected in 4yr baseline"
                         color="#8b5cf6"
+                        dark={dark}
+                        T={T}
+                        note="Isolation Forest detections"
                     />
                 </div>
 
                 {/* NDVI Chart */}
                 {chartData.length > 0 && (
-                    <div style={{marginBottom: '24px'}}>
-                        <h3 style={{
-                            color: '#14532d',
-                            marginBottom: '8px'
+                    <Section
+                        title="📈 Vegetation Health Trend (2020–2024)"
+                        T={T}
+                    >
+                        <div style={{
+                            background: T.card,
+                            border: `1px solid ${T.border}`,
+                            borderRadius: '10px',
+                            padding: '16px'
                         }}>
-                            Vegetation Health Trend (2020–2024)
-                        </h3>
-                        <ResponsiveContainer width="100%" height={220}>
-                            <LineChart data={chartData}>
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    opacity={0.3}
-                                />
-                                <XAxis
-                                    dataKey="date"
-                                    tick={{fontSize: 10}}
-                                    interval={Math.floor(
-                                        chartData.length / 6
-                                    )}
-                                />
-                                <YAxis
-                                    domain={[0, 1]}
-                                    tick={{fontSize: 10}}
-                                />
-                                <Tooltip/>
-                                <Line
-                                    type="monotone"
-                                    dataKey="ndvi"
-                                    stroke="#16a34a"
-                                    strokeWidth={2}
-                                    dot={false}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                )}
-
-                {/* Why Is This Happening */}
-                {zone.causes && zone.causes.length > 0 && (
-                    <Section title="🔍 Why Is This Happening?">
-                        {zone.causes.map((cause, i) => (
-                            <div key={i} style={{
-                                padding: '12px',
-                                background: cause.severity === 'HIGH'
-                                    ? '#fef2f2'
-                                    : cause.severity === 'MODERATE'
-                                    ? '#fffbeb'
-                                    : '#f0fdf4',
-                                borderRadius: '8px',
-                                marginBottom: '8px',
-                                borderLeft: `3px solid ${
-                                    cause.severity === 'HIGH'
-                                    ? '#ef4444'
-                                    : cause.severity === 'MODERATE'
-                                    ? '#f59e0b'
-                                    : '#22c55e'
-                                }`
+                            <ResponsiveContainer width="100%" height={220}>
+                                <LineChart data={chartData}>
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        stroke={dark
+                                            ? '#1e3a1e' : '#e5e7eb'}
+                                    />
+                                    <XAxis
+                                        dataKey="date"
+                                        tick={{
+                                            fontSize: 10,
+                                            fill: T.subtext
+                                        }}
+                                        interval={Math.floor(
+                                            chartData.length / 6
+                                        )}
+                                    />
+                                    <YAxis
+                                        domain={[0, 1]}
+                                        tick={{
+                                            fontSize: 10,
+                                            fill: T.subtext
+                                        }}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            background: T.card,
+                                            border: `1px solid ${T.border}`,
+                                            color: T.text,
+                                            borderRadius: '8px'
+                                        }}
+                                    />
+                                    <ReferenceLine
+                                        y={avgNdvi}
+                                        stroke={T.subtext}
+                                        strokeDasharray="4 4"
+                                        label={{
+                                            value: 'avg',
+                                            fill: T.subtext,
+                                            fontSize: 10
+                                        }}
+                                    />
+                                    <ReferenceLine
+                                        y={0.3}
+                                        stroke="#f97316"
+                                        strokeDasharray="3 3"
+                                        label={{
+                                            value: 'warning',
+                                            fill: '#f97316',
+                                            fontSize: 10
+                                        }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="ndvi"
+                                        stroke="#16a34a"
+                                        strokeWidth={2}
+                                        dot={false}
+                                        activeDot={{
+                                            r: 4,
+                                            fill: '#16a34a'
+                                        }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                            <div style={{
+                                display: 'flex',
+                                gap: '20px',
+                                fontSize: '11px',
+                                color: T.subtext,
+                                marginTop: '8px',
+                                paddingLeft: '8px'
                             }}>
-                                <b style={{fontSize: '14px'}}>
-                                    {cause.icon} {cause.cause}
-                                </b>
-                                <p style={{
-                                    margin: '4px 0 0',
-                                    fontSize: '13px',
-                                    color: '#374151'
-                                }}>
-                                    {cause.detail}
-                                </p>
+                                <span>
+                                    — Green line: NDVI readings
+                                </span>
+                                <span style={{color: T.subtext}}>
+                                    - - Dashed: historical average
+                                </span>
+                                <span style={{color: '#f97316'}}>
+                                    - - Orange: warning threshold (0.3)
+                                </span>
                             </div>
-                        ))}
+                        </div>
                     </Section>
                 )}
 
-                {/* Outcome Projection */}
-                {zone.outcome && (
-                    <Section title="📊 What Happens If Nothing Is Done?">
+                {/* Why Is This Happening */}
+                {zone.causes?.length > 0 && (
+                    <Section title="🔍 Why Is This Happening?" T={T}>
                         <div style={{
-                            background: '#fafafa',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '8px',
-                            overflow: 'hidden'
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px'
+                        }}>
+                            {zone.causes.map((cause, i) => {
+                                const bg = {
+                                    HIGH:     dark ? '#2a0d0d' : '#fef2f2',
+                                    MODERATE: dark ? '#2a1f0d' : '#fffbeb',
+                                    LOW:      dark ? '#0d2a0d' : '#f0fdf4'
+                                }[cause.severity] || T.card;
+                                const bc = {
+                                    HIGH: '#ef4444',
+                                    MODERATE: '#f59e0b',
+                                    LOW: '#22c55e'
+                                }[cause.severity] || T.border;
+                                return (
+                                    <div key={i} style={{
+                                        background: bg,
+                                        borderLeft: `4px solid ${bc}`,
+                                        borderRadius: '8px',
+                                        padding: '14px 16px'
+                                    }}>
+                                        <div style={{
+                                            fontWeight: '700',
+                                            fontSize: '14px',
+                                            color: T.text,
+                                            marginBottom: '4px'
+                                        }}>
+                                            {cause.icon} {cause.cause}
+                                        </div>
+                                        <div style={{
+                                            fontSize: '13px',
+                                            color: T.subtext,
+                                            lineHeight: '1.5'
+                                        }}>
+                                            {cause.detail}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </Section>
+                )}
+
+                {/* Outcome */}
+                {zone.outcome && (
+                    <Section
+                        title="📊 What Happens If Nothing Is Done?"
+                        T={T}
+                    >
+                        <div style={{
+                            background: T.card,
+                            border: `1px solid ${T.border}`,
+                            borderRadius: '10px',
+                            overflow: 'hidden',
+                            marginBottom: '8px'
                         }}>
                             {Object.entries(
                                 zone.outcome.if_no_action || {}
-                            ).map(([period, text], i) => (
+                            ).map(([period, text], i, arr) => (
                                 <div key={i} style={{
                                     display: 'flex',
-                                    gap: '12px',
-                                    padding: '12px 16px',
-                                    borderBottom: i < 2
-                                        ? '1px solid #e5e7eb'
-                                        : 'none'
+                                    gap: '16px',
+                                    padding: '14px 20px',
+                                    borderBottom: i < arr.length - 1
+                                        ? `1px solid ${T.border}`
+                                        : 'none',
+                                    alignItems: 'flex-start'
                                 }}>
                                     <span style={{
-                                        fontWeight: 'bold',
-                                        color: '#6b7280',
+                                        fontWeight: '700',
+                                        color: [
+                                            '#22c55e',
+                                            '#f59e0b',
+                                            '#ef4444'
+                                        ][i],
                                         minWidth: '80px',
-                                        fontSize: '13px'
+                                        fontSize: '13px',
+                                        paddingTop: '1px'
                                     }}>
-                                        {period.replace('_', ' ')}
+                                        {period.replace(/_/g, ' ')}
                                     </span>
                                     <span style={{
                                         fontSize: '13px',
-                                        color: '#374151'
+                                        color: T.subtext,
+                                        lineHeight: '1.5'
                                     }}>
                                         {text}
                                     </span>
                                 </div>
                             ))}
                         </div>
-                        <p style={{
+                        <div style={{
+                            display: 'flex',
+                            gap: '16px',
                             fontSize: '12px',
-                            color: '#6b7280',
-                            marginTop: '8px'
+                            color: T.subtext
                         }}>
-                            Trend: {zone.outcome.trend} |
-                            Urgency: <b>{zone.outcome.urgency}</b>
-                        </p>
+                            <span>
+                                Trend: <b style={{color: T.text}}>
+                                    {zone.outcome.trend}
+                                </b>
+                            </span>
+                            <span>
+                                Urgency: <b style={{
+                                    color: color
+                                }}>
+                                    {zone.outcome.urgency}
+                                </b>
+                            </span>
+                        </div>
                     </Section>
                 )}
 
                 {/* IKS Indicators */}
                 {zone.iks?.indicators && (
-                    <Section title="🌿 Traditional IKS Warning Indicators">
-                        <p style={{
-                            fontSize: '13px',
-                            color: '#6b7280',
+                    <Section
+                        title="🌿 Traditional IKS Warning Indicators"
+                        T={T}
+                    >
+                        <div style={{
+                            background: dark ? '#0d1f0d' : '#f0fdf4',
+                            border: `1px solid ${T.border}`,
+                            borderRadius: '10px',
+                            padding: '4px 0',
                             marginBottom: '8px'
                         }}>
-                            Based on {zone.iks.guardian_system} —
-                            traditional ecological knowledge for
-                            this region:
-                        </p>
-                        {zone.iks.indicators.map((ind, i) => (
-                            <div key={i} style={{
-                                display: 'flex',
-                                gap: '8px',
-                                padding: '6px 0',
-                                fontSize: '13px',
-                                borderBottom: '1px solid #f3f4f6'
-                            }}>
-                                <span style={{color: '#16a34a'}}>
-                                    ›
-                                </span>
-                                {ind}
-                            </div>
-                        ))}
+                            {zone.iks.indicators.map((ind, i) => (
+                                <div key={i} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    padding: '11px 16px',
+                                    borderBottom: i < zone.iks.indicators.length - 1
+                                        ? `1px solid ${T.border}` : 'none',
+                                    fontSize: '13px',
+                                    color: T.text
+                                }}>
+                                    <span style={{
+                                        color: '#16a34a',
+                                        fontWeight: '700',
+                                        fontSize: '16px'
+                                    }}>›</span>
+                                    {ind}
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{
+                            fontSize: '12px',
+                            color: T.subtext,
+                            fontStyle: 'italic'
+                        }}>
+                            Source: {zone.iks.guardian_system}
+                            — Vrikshayurveda ecological knowledge system
+                        </div>
                     </Section>
                 )}
 
-                {/* How To Reverse */}
+                {/* Reversal Actions */}
                 {zone.iks?.reversal_actions && (
-                    <Section title="🔄 How To Reverse The Degradation">
-                        <p style={{
-                            fontSize: '13px',
-                            color: '#6b7280',
-                            marginBottom: '8px'
+                    <Section
+                        title="🔄 How To Reverse The Degradation"
+                        T={T}
+                    >
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px'
                         }}>
-                            Recommended actions combining modern
-                            conservation science and traditional
-                            IKS practices:
-                        </p>
-                        {zone.iks.reversal_actions.map((action, i) => (
-                            <div key={i} style={{
-                                display: 'flex',
-                                gap: '8px',
-                                padding: '8px 12px',
-                                background: i % 2 === 0
-                                    ? '#f0fdf4' : 'white',
-                                borderRadius: '4px',
-                                fontSize: '13px',
-                                marginBottom: '4px'
-                            }}>
-                                <span style={{
-                                    color: '#16a34a',
-                                    fontWeight: 'bold',
-                                    minWidth: '20px'
+                            {zone.iks.reversal_actions.map((action, i) => (
+                                <div key={i} style={{
+                                    display: 'flex',
+                                    gap: '14px',
+                                    alignItems: 'flex-start',
+                                    padding: '12px 16px',
+                                    background: i % 2 === 0
+                                        ? (dark ? '#0d1f0d' : '#f0fdf4')
+                                        : T.card,
+                                    borderRadius: '8px',
+                                    border: `1px solid ${T.border}`
                                 }}>
-                                    {i + 1}.
-                                </span>
-                                {action}
-                            </div>
-                        ))}
+                                    <span style={{
+                                        background: '#16a34a',
+                                        color: '#fff',
+                                        width: '24px',
+                                        height: '24px',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '12px',
+                                        fontWeight: '700',
+                                        flexShrink: 0
+                                    }}>
+                                        {i + 1}
+                                    </span>
+                                    <span style={{
+                                        fontSize: '13px',
+                                        color: T.text,
+                                        lineHeight: '1.5',
+                                        paddingTop: '3px'
+                                    }}>
+                                        {action}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     </Section>
                 )}
 
@@ -295,50 +452,70 @@ export default function Dashboard({ zone }) {
     );
 }
 
-function StatCard({ label, value, sub, color }) {
+function StatCard({ label, value, sub, color, dark, T, note }) {
     return (
         <div style={{
-            padding: '16px',
-            background: '#f9fafb',
-            borderRadius: '8px',
-            border: '1px solid #e5e7eb',
+            padding: '20px',
+            background: T.card,
+            borderRadius: '12px',
+            border: `1px solid ${T.border}`,
             textAlign: 'center'
         }}>
             <div style={{
-                fontSize: '24px',
-                fontWeight: 'bold',
-                color: color
+                fontSize: '30px',
+                fontWeight: '800',
+                color: color,
+                lineHeight: 1
             }}>
                 {value}
             </div>
             <div style={{
                 fontSize: '13px',
                 fontWeight: '600',
-                color: '#374151',
-                marginTop: '4px'
+                color: T.text,
+                marginTop: '6px'
             }}>
                 {label}
             </div>
             <div style={{
                 fontSize: '11px',
-                color: '#9ca3af',
+                color: T.subtext,
                 marginTop: '2px'
             }}>
                 {sub}
             </div>
+            {note && (
+                <div style={{
+                    fontSize: '11px',
+                    color: T.subtext,
+                    marginTop: '8px',
+                    padding: '3px 8px',
+                    background: dark
+                        ? 'rgba(255,255,255,0.05)'
+                        : 'rgba(0,0,0,0.04)',
+                    borderRadius: '4px',
+                    display: 'inline-block'
+                }}>
+                    {note}
+                </div>
+            )}
         </div>
     );
 }
 
-function Section({ title, children }) {
+function Section({ title, children, T }) {
     return (
-        <div style={{marginBottom: '24px'}}>
+        <div style={{marginBottom: '28px'}}>
             <h3 style={{
-                color: '#14532d',
+                color: T.darkgreen,
                 fontSize: '15px',
-                marginBottom: '12px',
-                paddingBottom: '8px',
-                borderBottom: '1px solid #e5e7eb'
+                fontWeight: '700',
+                marginBottom: '14px',
+                paddingBottom: '10px',
+                borderBottom: `1px solid ${T.border}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
             }}>
                 {title}
             </h3>
